@@ -7,8 +7,6 @@ import { HexDocumentEditOp } from "../shared/hexDocumentModel";
 import { openCompareSelected } from "./compareSelected";
 import { copyAs } from "./copyAs";
 import { DataInspectorView } from "./dataInspectorView";
-import { convertToJson, segmentText } from "./dataProcessor";
-import { createDatasetEditorWebview } from "./datasetEditorWebview";
 import { showGoToOffset } from "./goToOffset";
 import { HexDiffFSProvider } from "./hexDiffFS";
 import { HexEditorProvider } from "./hexEditorProvider";
@@ -131,49 +129,6 @@ export async function activate(context: vscode.ExtensionContext) {
 		},
 	);
 
-	const openDataFileCommand = vscode.commands.registerCommand(
-		"datasetEditor.openDatasetFile",
-		async () => {
-			const fileUris = await vscode.window.showOpenDialog({
-				canSelectMany: false,
-				openLabel: "打开文件",
-			});
-
-			if (fileUris && fileUris.length > 0) {
-				const fileUri = fileUris[0];
-				const fileContent = await vscode.workspace.fs.readFile(fileUri);
-				const text = Buffer.from(fileContent).toString("utf-8");
-
-				const segmentationType = vscode.workspace
-					.getConfiguration()
-					.get<string>("datasetEditor.segmentationType");
-				const wordsPerSegment = vscode.workspace
-					.getConfiguration()
-					.get<number>("datasetEditor.wordsPerSegment");
-
-				const segments = segmentText(text, segmentationType!, wordsPerSegment);
-				const jsonData = convertToJson(segments);
-
-				const webviewPanel = vscode.window.createWebviewPanel(
-					"datasetEditor.view",
-					"大模型数据集编辑器",
-					vscode.ViewColumn.One,
-					{
-						enableScripts: true,
-					},
-				);
-
-				createDatasetEditorWebview(webviewPanel, context);
-
-				webviewPanel.webview.postMessage({
-					type: "setData",
-					jsonData,
-					textData: segments.join("<br><br>"),
-				});
-			}
-		},
-	);
-	context.subscriptions.push(openDataFileCommand);
 	context.subscriptions.push(new StatusEditMode(registry));
 	context.subscriptions.push(new StatusFocus(registry));
 	context.subscriptions.push(new StatusHoverAndSelection(registry));
@@ -187,10 +142,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(compareSelectedCommand);
 	context.subscriptions.push(
 		vscode.workspace.registerFileSystemProvider("hexdiff", new HexDiffFSProvider(), {
-			isCaseSensitive:
-				typeof process !== "undefined" &&
-				process.platform !== "win32" &&
-				process.platform !== "darwin",
+			isCaseSensitive: typeof process !== 'undefined' && process.platform !== 'win32' && process.platform !== 'darwin',
 		}),
 	);
 	context.subscriptions.push(
