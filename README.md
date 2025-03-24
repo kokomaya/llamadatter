@@ -1,8 +1,8 @@
-A custom editor extension for Visual Studio Code which provides a hex editor for viewing and manipulating files in their raw hexadecimal representation.
+A custom editor extension for Visual Studio Code which provides a json editor for viewing and manipulating files in their raw representation.
 
 ## Features
 
-- Opening files as hex
+- Opening files as md
 - A data inspector for viewing the hex values as various different data types
 - Editing with undo, redo, copy, and paste support
 - Find and replace
